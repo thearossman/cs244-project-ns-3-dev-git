@@ -1,4 +1,4 @@
-**Fork of NS-3 repo for use in CS244 final project: Reproducing Network Research. **
+**Fork of NS-3 repo for use in CS244 final project: Reproducing Network Research.**
 *Capacity of Ad-Hoc Wireless Networks (Li et. al., 2001).*
 
 ================================
