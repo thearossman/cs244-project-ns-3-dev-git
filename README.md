@@ -1,10 +1,14 @@
-**Fork of NS-3 repo for use in CS244 final project: Reproducing Network Research.**
+================================
+Fork of NS-3 repo for use in CS244 final project: Reproducing Network Research.**
+================================
 
-*Capacity of Ad-Hoc Wireless Networks (Li et. al., 2001).*
+**Capacity of Ad-Hoc Wireless Networks (Li et. al., 2001).**
 
 ================================
-The Network Simulator, Version 3
+Original NS-3 documentation: 
 ================================
+
+**The Network Simulator, Version 3**
 
 ## Table of Contents:
 
