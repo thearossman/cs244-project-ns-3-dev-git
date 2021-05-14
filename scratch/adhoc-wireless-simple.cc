@@ -1,10 +1,11 @@
 #include <stdlib.h>
 
 #include "ns3/core-module.h"
-#include "ns3/simulator-module.h"
-#include "ns3/node-module.h"
-#include "ns3/helper-module.h"
+#include "ns3/applications-module.h"
+#include "ns3/network-module.h"
+#include "ns3/internet-module.h"
 #include "ns3/wifi-module.h"
+#include "ns3/wave-mac-helper.h"
 #include "ns3/mobility-module.h"
 
 using namespace ns3;
@@ -89,23 +90,24 @@ main (int argc, char *argv[])
 
   // In the simple simulation, the first node is always the sender
   // and the last node is always the receiver.
-  Ptr<Node> source = wifiNodes(0);
-  Ptr<Node> sink = wifiNodes(chainlen - 1);
+  Ptr<Node> source = wifiNodes.Get(0);
+  Ptr<Node> sink = wifiNodes.Get(chainlen - 1);
 
   // The next bit of code constructs the wifi devices and the
   // interconnection channel between these wifi nodes. First,
   // we configure the PHY and channel helpers: 
   YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
-  YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
+  YansWifiPhyHelper phy = YansWifiPhyHelper ();
   phy.SetChannel (channel.Create ());
 
   // Once the PHY helper is configured, we can focus on the MAC
   // layer. Here we choose to work with non-Qos MACs so we use a
   // NqosWifiMacHelper object to set MAC parameters. 
-  WifiHelper wifi = WifiHelper::Default ();
+  WifiHelper wifi = WifiHelper();
   wifi.SetRemoteStationManager ("ns3::AarfWifiManager");
 
-  NqosWifiMacHelper mac = NqosWifiMacHelper::Default ();
+  //note: tutorial used something called  NqosWifiMacHelper
+  NqosWaveMacHelper mac = NqosWaveMacHelper::Default ();
 
   // This code first creates an 802.11 service set identifier (SSID)
   // object that will be used to set the value of the “Ssid” Attribute
