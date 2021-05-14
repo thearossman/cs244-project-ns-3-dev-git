@@ -1,5 +1,6 @@
 # Ignore everything on scratch by default, except the provided examples
 /*
 !.gitignore
+!adhoc-wireless-simple.cc
 !subdir/
 !scratch-simulator.cc
