@@ -53,12 +53,25 @@
  #include "ns3/mesh-module.h"
  #include "ns3/mobility-module.h"
  #include "ns3/mesh-helper.h"
+ #include "ns3/command-line.h"
+ #include "ns3/config.h"
+ #include "ns3/string.h"
+ #include "ns3/log.h"
  #include "ns3/yans-wifi-helper.h"
+ #include "ns3/ssid.h"
+ #include "ns3/mobility-helper.h"
+ #include "ns3/on-off-helper.h"
+ #include "ns3/yans-wifi-channel.h"
+ #include "ns3/mobility-model.h"
+ #include "ns3/packet-sink.h"
+ #include "ns3/packet-sink-helper.h"
+ #include "ns3/internet-stack-helper.h"
+ #include "ns3/ipv4-address-helper.h"
+ #include "ns3/ipv4-global-routing-helper.h"
  
  using namespace ns3;
  
- NS_LOG_COMPONENT_DEFINE ("TestMeshScript");
- 
+ NS_LOG_COMPONENT_DEFINE ("TestMeshScript"); 
  class MeshTest
  {
  public:
@@ -77,6 +90,12 @@
    bool      m_chan; 
    bool      m_pcap; 
    bool      m_ascii; 
+   // Ptr<PacketSink> sink;                         /* Pointer to the packet sink application */
+   Ptr<UdpServer> sink;                         /* Pointer to the packet sink application */
+   uint64_t lastTotalRx = 0;
+   std::string dataRate = "100Mbps";                  /* Application layer datarate. */
+   std::string tcpVariant = "ns3::TcpNewReno";             /* TCP variant type. */
+   std::string phyRate = "HtMcs7";                    /* Physical layer bitrate. */
    std::string m_stack; 
    std::string m_root; 
    NodeContainer nodes;
@@ -85,18 +104,18 @@
    MeshHelper mesh;
  private:
    void CreateNodes ();
+   void CalculateThroughput();
    void InstallInternetStack ();
    void InstallApplication ();
-   void Report ();
  };
  MeshTest::MeshTest () :
    m_xSize (2),
    m_ySize (1),
-   m_step (200.0),
+   m_step (100.0),
    m_randomStart (0.1),
-   m_totalTime (300.0),
+   m_totalTime (20.0),
    m_packetInterval (0.1),
-   m_packetSize (1500),
+   m_packetSize (1472),
    m_nIfaces (1),
    m_chan (true),
    m_pcap (false),
@@ -131,7 +150,30 @@
      {
        PacketMetadata::Enable ();
      }
+
+    TypeId tcpTid;
+    NS_ABORT_MSG_UNLESS (TypeId::LookupByNameFailSafe (tcpVariant, &tcpTid), "TypeId " << tcpVariant << " not found");
+    Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TypeId::LookupByName (tcpVariant)));
+    /* Configure TCP Options */
+    Config::SetDefault ("ns3::TcpSocket::SegmentSize", UintegerValue (m_packetSize));
  }
+
+ void
+ MeshTest::CalculateThroughput ()
+ {
+   // Time now = Simulator::Now ();                                         /* Return the simulator's virtual time. */
+   // double cur = (sink->GetTotalRx () - lastTotalRx) * (double) 8 / 1e5;      Convert Application RX Packets to MBits. 
+   // std::cout << now.GetSeconds () << "s: \t" << cur << " Mbit/s" << std::endl;
+   // lastTotalRx = sink->GetTotalRx ();
+   // Simulator::Schedule (MilliSeconds (100), &MeshTest::CalculateThroughput, this);
+   Time now = Simulator::Now ();                                         /* Return the simulator's virtual time. */
+   // double cur = (sink->GetReceived () * m_packetSize - lastTotalRx) * (double) 8 / 1e5;     /* Convert Application RX Packets to MBits. */
+   // std::cout << now.GetSeconds () << "s: \t" << cur << " Mbit/s" << std::endl;
+   // lastTotalRx = sink->GetReceived () * m_packetSize;
+  std::cout << now.GetSeconds () << "s: \t" << sink->GetReceived() << " packets/s" << std::endl;
+   Simulator::Schedule (MilliSeconds (100), &MeshTest::CalculateThroughput, this);
+ }
+
  void
  MeshTest::CreateNodes ()
  { 
@@ -140,7 +182,7 @@
     */
    nodes.Create (m_ySize*m_xSize);
    // Configure YansWifiChannel
-   YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
+   YansWifiPhyHelper wifiPhy;
    YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
    wifiPhy.SetChannel (wifiChannel.Create ());
    /*
@@ -199,21 +241,45 @@
    Ipv4AddressHelper address;
    address.SetBase ("10.1.1.0", "255.255.255.0");
    interfaces = address.Assign (meshDevices);
+
+   /* Populate routing table */
+   // Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
  }
  void
  MeshTest::InstallApplication ()
  {
-   UdpEchoServerHelper echoServer (9);
+  /* Install TCP Receiver on the last node */
+   // int sink_ind = 0;
+   // int source_ind = m_xSize*m_ySize-1;
+   // PacketSinkHelper sinkHelper ("ns3::TcpSocketFactory", InetSocketAddress (interfaces.GetAddress(sink_ind), 9)); //port 9
+   // ApplicationContainer sinkApp = sinkHelper.Install (nodes.Get(sink_ind));
+   // sink = StaticCast<PacketSink> (sinkApp.Get (0));
+
+   // /* Install TCP/UDP Transmitter on the station */
+   // OnOffHelper server ("ns3::TcpSocketFactory", (InetSocketAddress (interfaces.GetAddress(sink_ind), 9)));
+   // server.SetAttribute ("PacketSize", UintegerValue (m_packetSize));
+   // server.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
+   // server.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
+   // server.SetAttribute ("DataRate", DataRateValue (DataRate (dataRate)));
+   // ApplicationContainer serverApp = server.Install (nodes.Get(source_ind));
+ 
+   // /* Start Applications */
+   // sinkApp.Start (Seconds (0.0));
+   // serverApp.Start (Seconds (1.0));
+   // Simulator::Schedule (Seconds (1.1), &MeshTest::CalculateThroughput, this);
+   UdpServerHelper echoServer (9);
    ApplicationContainer serverApps = echoServer.Install (nodes.Get (0));
+   sink = DynamicCast<UdpServer> (serverApps.Get(0));
    serverApps.Start (Seconds (0.0));
    serverApps.Stop (Seconds (m_totalTime));
-   UdpEchoClientHelper echoClient (interfaces.GetAddress (0), 9);
+   UdpClientHelper echoClient (interfaces.GetAddress (0), 9);
    echoClient.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(m_totalTime*(1/m_packetInterval))));
    echoClient.SetAttribute ("Interval", TimeValue (Seconds (m_packetInterval)));
    echoClient.SetAttribute ("PacketSize", UintegerValue (m_packetSize));
    ApplicationContainer clientApps = echoClient.Install (nodes.Get (m_xSize*m_ySize-1));
    clientApps.Start (Seconds (0.0));
    clientApps.Stop (Seconds (m_totalTime));
+   Simulator::Schedule (Seconds (1.1), &MeshTest::CalculateThroughput, this);
  }
  int
  MeshTest::Run ()
@@ -221,31 +287,21 @@
    CreateNodes ();
    InstallInternetStack ();
    InstallApplication ();
-   Simulator::Schedule (Seconds (m_totalTime), &MeshTest::Report, this);
-   Simulator::Stop (Seconds (m_totalTime));
+   Simulator::Stop (Seconds (m_totalTime + 1));
    Simulator::Run ();
+
+   // double averageThroughput = ((sink->GetTotalRx () * 8) / (1e6 * m_totalTime));
+   double averageThroughput = ((sink->GetReceived () * m_packetSize * 8) / (1e6 * m_totalTime));
+
    Simulator::Destroy ();
-   return 0;
- }
- void
- MeshTest::Report ()
- {
-   unsigned n (0);
-   for (NetDeviceContainer::Iterator i = meshDevices.Begin (); i != meshDevices.End (); ++i, ++n)
+   
+   if (averageThroughput < 50)
      {
-       std::ostringstream os;
-       os << "mp-report-" << n << ".xml";
-       std::cerr << "Printing mesh point device #" << n << " diagnostics to " << os.str () << "\n";
-       std::ofstream of;
-       of.open (os.str ().c_str ());
-       if (!of.is_open ())
-         {
-           std::cerr << "Error: Can't open file " << os.str () << "\n";
-           return;
-         }
-       mesh.Report (*i, of);
-       of.close ();
+       NS_LOG_ERROR ("Obtained throughput is not in the expected boundaries!");
+       exit (1);
      }
+   std::cout << "\nAverage throughput: " << averageThroughput << " Mbit/s" << std::endl;
+   return 0;
  }
  int
  main (int argc, char *argv[])
