@@ -4,3 +4,4 @@
 !adhoc-wireless-simple.cc
 !subdir/
 !scratch-simulator.cc
+!mesh-cpy.cc
