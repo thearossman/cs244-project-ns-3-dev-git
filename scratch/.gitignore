@@ -5,3 +5,4 @@
 !subdir/
 !scratch-simulator.cc
 !mesh-cpy.cc
+!tcp-example.cc

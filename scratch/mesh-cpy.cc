@@ -109,13 +109,13 @@
    void InstallApplication ();
  };
  MeshTest::MeshTest () :
-   m_xSize (2),
+   m_xSize (4),
    m_ySize (1),
-   m_step (100.0),
+   m_step (50.0),
    m_randomStart (0.1),
    m_totalTime (20.0),
-   m_packetInterval (0.1),
-   m_packetSize (1472),
+   m_packetInterval (0.01),
+   m_packetSize (64),
    m_nIfaces (1),
    m_chan (true),
    m_pcap (false),
@@ -184,6 +184,9 @@
    // Configure YansWifiChannel
    YansWifiPhyHelper wifiPhy;
    YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
+   // wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
+   // wifiChannel.AddPropagationLoss ("ns3::FriisPropagationLossModel", "Frequency", DoubleValue (5e9));
+
    wifiPhy.SetChannel (wifiChannel.Create ());
    /*
     * Create mesh helper and set stack installer to it
@@ -209,6 +212,8 @@
      {
        mesh.SetSpreadInterfaceChannels (MeshHelper::ZERO_CHANNEL);
      }
+
+   mesh.SetStandard (WIFI_STANDARD_80211n_5GHZ);
    mesh.SetMacType ("RandomStart", TimeValue (Seconds (m_randomStart)));
    // Set number of interfaces - default is single-interface mesh point
    mesh.SetNumberOfInterfaces (m_nIfaces);
