@@ -87,11 +87,17 @@
 #include "ns3/applications-module.h"
 #include "ns3/core-module.h"
 #include "ns3/tcp-socket-factory.h"
+#include "ns3/tcp-header.h"
+#include "ns3/core-module.h"
+#include "ns3/packet.h"
+#include "ns3/tcp-socket-base.h"
+#include "ns3/packet-sink.h"
 
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("WifiSimpleAdhocGrid");
 
+/*** OLD ***/
 void ReceivePacket (Ptr<Socket> socket)
 {
   while (socket->Recv ())
@@ -100,6 +106,7 @@ void ReceivePacket (Ptr<Socket> socket)
     }
 }
 
+/*** OLD ***/
 static void GenerateTraffic (Ptr<Socket> socket, uint32_t pktSize,
                              uint32_t pktCount, Time pktInterval )
 {
@@ -113,6 +120,17 @@ static void GenerateTraffic (Ptr<Socket> socket, uint32_t pktSize,
     {
       socket->Close ();
     }
+}
+
+uint64_t lastTotalRx = 0; 
+Ptr<PacketSink> sink;
+static void CalculateThroughput ()
+{ 
+  Time now = Simulator::Now ();
+  double cur = (sink->GetTotalRx () - lastTotalRx) * (double) 8 / 1e5;
+  std::cout << now.GetSeconds () << "s: \t" << cur << " Mbit/s" << std::endl;
+  lastTotalRx = sink->GetTotalRx ();
+  Simulator::Schedule (MilliSeconds (100), &CalculateThroughput);
 }
 
 
@@ -132,7 +150,8 @@ int main (int argc, char *argv[])
   bool verbose = false;
   bool tracing = false;
   std::string transport_prot = "ns3::TcpNewReno";
-  
+  std::string dir = "outputs"; 
+ 
   // Give OLSR time to converge (e.g., populate routing tables). 
   double OLSR_CONVERGE_TIME = 30.0;
   double REMAINING_SIMULATION_TIME = 300.0;   
@@ -280,9 +299,12 @@ int main (int argc, char *argv[])
                                    receiverAddress.Get());
   receiverHelper.SetAttribute ("Protocol",
                                TypeIdValue (TcpSocketFactory::GetTypeId ()));
-
+ 
   // Installation  
   ApplicationContainer receiverApp = receiverHelper.Install (c.Get(sinkNode));
+  // Save so that we can call getTotalRx later
+  sink = StaticCast<PacketSink> (receiverApp.Get (0));
+  // Schedule
   receiverApp.Start (Seconds (OLSR_CONVERGE_TIME));
   receiverApp.Stop (Seconds ((double)OLSR_CONVERGE_TIME + REMAINING_SIMULATION_TIME));
  
@@ -297,11 +319,12 @@ int main (int argc, char *argv[])
   sourceApp.Start (Seconds (OLSR_CONVERGE_TIME));
   sourceApp.Stop (Seconds ((double)OLSR_CONVERGE_TIME + REMAINING_SIMULATION_TIME));
 
+  AsciiTraceHelper asciiTraceHelper;
+
   /*** TRACING SETUP ***/
   if (tracing == true)
     {
-      AsciiTraceHelper ascii;
-      wifiPhy.EnableAsciiAll (ascii.CreateFileStream ("wifi-simple-adhoc-grid.tr"));
+      wifiPhy.EnableAsciiAll (asciiTraceHelper.CreateFileStream ("wifi-simple-adhoc-grid.tr"));
       wifiPhy.EnablePcap ("wifi-simple-adhoc-grid", devices);
       // Trace routing tables
       Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper> ("wifi-simple-adhoc-grid.routes", std::ios::out);
@@ -315,21 +338,20 @@ int main (int argc, char *argv[])
   // Output what we are doing
   NS_LOG_UNCOND ("Testing from node " << sourceNode << " to " << sinkNode << " with grid distance " << distance);
 
-  // TODO
   // Start tracing throughput after we've given time for OLSR to converge 
   // (+ a buffer to allow connection to be established.) 
-  // std::string throughputStreamName = dir + "throughput.tr";
-  //Ptr<OutputStreamWrapper> throughputStream;
-  //throughputStream = asciiTraceHelper.CreateFileStream (throughputStreamName);
-  //Simulator::Schedule (Seconds (OLSR_CONVERGE_TIME + 0.05), &TraceThroughput, throughputStream);
-  
+  std::string throughputStreamName = dir + "throughput.tr";
+  Ptr<OutputStreamWrapper> throughputStream;
+  throughputStream = asciiTraceHelper.CreateFileStream (throughputStreamName);
+  Simulator::Schedule (Seconds (OLSR_CONVERGE_TIME + 0.05), &CalculateThroughput); 
+
+
   // Time delay for when simulator should stop
   // We should do this as [time for OLSR to converge] + 
   // [time we want to be testing the TCP flow] 
   Simulator::Stop (Seconds (OLSR_CONVERGE_TIME + REMAINING_SIMULATION_TIME)); 
   Simulator::Run ();
   Simulator::Destroy ();
-
   return 0;
 }
 
