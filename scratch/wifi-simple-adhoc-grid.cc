@@ -23,13 +23,9 @@
 // 802.11b NICs in adhoc mode, and by default, sends one packet of 1000
 // (application) bytes to node 1.
 //
-// The default layout is like this, on a 2-D grid.
+// Layout is like this, on a chain: 
 //
-// n20  n21  n22  n23  n24
-// n15  n16  n17  n18  n19
-// n10  n11  n12  n13  n14
-// n5   n6   n7   n8   n9
-// n0   n1   n2   n3   n4
+// n0   n1   n2   n3   n4 ...
 //
 // the layout is affected by the parameters given to GridPositionAllocator;
 // by default, GridWidth is 5 and numNodes is 25..
@@ -97,30 +93,6 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("WifiSimpleAdhocGrid");
 
-/*** OLD ***/
-void ReceivePacket (Ptr<Socket> socket)
-{
-  while (socket->Recv ())
-    {
-      NS_LOG_UNCOND ("Received one packet!");
-    }
-}
-
-/*** OLD ***/
-static void GenerateTraffic (Ptr<Socket> socket, uint32_t pktSize,
-                             uint32_t pktCount, Time pktInterval )
-{
-  if (pktCount > 0)
-    {
-      socket->Send (Create<Packet> (pktSize));
-      Simulator::Schedule (pktInterval, &GenerateTraffic,
-                           socket, pktSize,pktCount - 1, pktInterval);
-    }
-  else
-    {
-      socket->Close ();
-    }
-}
 
 uint64_t lastTotalRx = 0; 
 Ptr<PacketSink> sink;
@@ -140,11 +112,11 @@ int main (int argc, char *argv[])
   /*** DECLARE PARAMETERS ***/
   
   std::string phyMode ("DsssRate2Mbps");
-  double distance = 200;  // m
+  double distance = 100;  // m
   uint32_t packetSize = 1000; // bytes
   uint32_t numPackets = 1;
-  uint32_t numNodes = 2;  // by default, 5x5 --> CHANGE THIS
-  uint32_t sinkNode = 1;
+  uint32_t numNodes = 4;  // by default, 5x5 --> CHANGE THIS
+  uint32_t sinkNode = 3;
   uint32_t sourceNode = 0;
   // double interval = 1.0; // seconds
   bool verbose = false;
