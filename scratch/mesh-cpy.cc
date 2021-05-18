@@ -111,7 +111,7 @@
  MeshTest::MeshTest () :
    m_xSize (4),
    m_ySize (1),
-   m_step (50.0),
+   m_step (200.0),
    m_randomStart (0.1),
    m_totalTime (20.0),
    m_packetInterval (0.01),
@@ -213,7 +213,7 @@
        mesh.SetSpreadInterfaceChannels (MeshHelper::ZERO_CHANNEL);
      }
 
-   mesh.SetStandard (WIFI_STANDARD_80211n_5GHZ);
+   mesh.SetStandard (WIFI_STANDARD_80211b);
    mesh.SetMacType ("RandomStart", TimeValue (Seconds (m_randomStart)));
    // Set number of interfaces - default is single-interface mesh point
    mesh.SetNumberOfInterfaces (m_nIfaces);
@@ -300,7 +300,7 @@
 
    Simulator::Destroy ();
    
-   if (averageThroughput < 50)
+   if (averageThroughput < 2)
      {
        NS_LOG_ERROR ("Obtained throughput is not in the expected boundaries!");
        exit (1);
