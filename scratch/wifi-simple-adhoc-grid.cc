@@ -1,7 +1,9 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 
 /* This code is heavily based on the "wifi-simple-adhoc-grid" example 
- * from the ns-3 source website. 
+ * from ns-3, which is available here:
+ * https://www.nsnam.org/doxygen/wifi-simple-adhoc-grid_8cc_source.html
+ *  
  * The original code is Copyright (c) 2009 University of Washington
  * and released under the GNU General Public License v2. 
  */
