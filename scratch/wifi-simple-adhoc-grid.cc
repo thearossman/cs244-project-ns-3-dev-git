@@ -131,8 +131,8 @@ int main (int argc, char *argv[])
   double distance = 200;  // m
   uint32_t packetSize = 1000; // bytes
   uint32_t numPackets = 1;
-  uint32_t numNodes = 2;
-  uint32_t sinkNode = 1;
+  uint32_t numNodes = 8;
+  uint32_t sinkNode = 7;
   uint32_t sourceNode = 0;
   // double interval = 1.0; // seconds
   bool verbose = false;
@@ -341,7 +341,7 @@ int main (int argc, char *argv[])
   Simulator::Stop (Seconds (OLSR_CONVERGE_TIME + REMAINING_SIMULATION_TIME)); 
   Simulator::Run ();
   Simulator::Destroy ();
-  std::cout << "total: " << sink->GetTotalRx () * 8 / 1e6 << "Mb on chain of " << numNodes << " endl" << std::endl;
+  std::cout << "total: " << sink->GetTotalRx () * 8 / 1e6 << "Mb on chain of " << numNodes << " nodes." << std::endl;
   return 0;
 }
 
