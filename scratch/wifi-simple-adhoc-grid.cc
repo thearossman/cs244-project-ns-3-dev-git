@@ -93,18 +93,34 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("WifiSimpleAdhocGrid");
 
-
 uint64_t lastTotalRx = 0; 
 Ptr<PacketSink> sink;
 static void CalculateThroughput ()
 { 
+  // Get the current time 
   Time now = Simulator::Now ();
-  double cur = (sink->GetTotalRx () - lastTotalRx) * (double) 8 / 1e5;
+  // Total Mbits received by the TCP receiver so far
+  // Note: GetTotalRx = measured in bytes. 
+  // I think bytes received by the application (e.g., not counting headers). 
+  double totalRx = sink->GetTotalRx () * 8 / 1e6; 
+  // Total Mbits received in the last second. 
+  double cur = totalRx - lastTotalRx; 
+  // Print accounting 
   std::cout << now.GetSeconds () << "s: \t" << cur << " Mbit/s" << std::endl;
-  lastTotalRx = sink->GetTotalRx ();
-  Simulator::Schedule (MilliSeconds (100), &CalculateThroughput);
+  // Update lastTotalRx
+  lastTotalRx = totalRx;
+  // Call again in a second (should be called every seconds)
+  Simulator::Schedule (Seconds (1), &CalculateThroughput);
 }
 
+
+// Give OLSR time to converge (e.g., populate routing tables). 
+double OLSR_CONVERGE_TIME = 30.0;
+// Time for which to run the simulation (after allowing OLSR convergence)
+double REMAINING_SIMULATION_TIME = 100.0;
+// Effective transmission range of the nodes. 
+// (Used to set propagation loss model - NOT SURE IF THIS IS RIGHT.) 
+double RANGE = 250.0;
 
 int main (int argc, char *argv[])
 {
@@ -112,11 +128,11 @@ int main (int argc, char *argv[])
   /*** DECLARE PARAMETERS ***/
   
   std::string phyMode ("DsssRate2Mbps");
-  double distance = 100;  // m
+  double distance = 200;  // m
   uint32_t packetSize = 1000; // bytes
   uint32_t numPackets = 1;
-  uint32_t numNodes = 4;  // by default, 5x5 --> CHANGE THIS
-  uint32_t sinkNode = 3;
+  uint32_t numNodes = 2;
+  uint32_t sinkNode = 1;
   uint32_t sourceNode = 0;
   // double interval = 1.0; // seconds
   bool verbose = false;
@@ -124,10 +140,6 @@ int main (int argc, char *argv[])
   std::string transport_prot = "ns3::TcpNewReno";
   std::string dir = "outputs"; 
  
-  // Give OLSR time to converge (e.g., populate routing tables). 
-  double OLSR_CONVERGE_TIME = 30.0;
-  double REMAINING_SIMULATION_TIME = 300.0;   
-
   CommandLine cmd (__FILE__);
   cmd.AddValue ("phyMode", "Wifi Phy mode", phyMode);
   cmd.AddValue ("distance", "distance (m)", distance);
@@ -148,7 +160,7 @@ int main (int argc, char *argv[])
   // Fix non-unicast data rate to be the same as that of unicast
   Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode",
                       StringValue (phyMode));
-  
+   
   /*** CREATE NODES ***/
   NodeContainer c;
   c.Create (numNodes);
@@ -192,8 +204,16 @@ int main (int argc, char *argv[])
   YansWifiChannelHelper wifiChannel;
   // TODO: Again, we may need to tune these parameters.
   wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
-  wifiChannel.AddPropagationLoss ("ns3::FriisPropagationLossModel");
-  // We need to bind the WiFi channel to the physical layer 
+ 
+  // *PARAMETER CHANGED* 
+  // This sets the propagation loss model for the WiFi channel.
+  // WE MAY WANT TO CHANGE THIS, but for now, I just set it to drop packets past 
+  // a certain range.
+  // Note: see other possible models here: 
+  //            https://www.nsnam.org/docs/models/html/propagation.html
+  //		LogDistancePropagationLossModel also could be promising? 
+  wifiChannel.AddPropagationLoss ("ns3::RangePropagationLossModel", "MaxRange", DoubleValue(RANGE));
+  // Bind the WiFi channel to the physical layer 
   wifiPhy.SetChannel (wifiChannel.Create ());
 
   /** Upper-level MAC **/ 
@@ -312,10 +332,7 @@ int main (int argc, char *argv[])
 
   // Start tracing throughput after we've given time for OLSR to converge 
   // (+ a buffer to allow connection to be established.) 
-  std::string throughputStreamName = dir + "throughput.tr";
-  Ptr<OutputStreamWrapper> throughputStream;
-  throughputStream = asciiTraceHelper.CreateFileStream (throughputStreamName);
-  Simulator::Schedule (Seconds (OLSR_CONVERGE_TIME + 0.05), &CalculateThroughput); 
+  Simulator::Schedule (Seconds (OLSR_CONVERGE_TIME + 0.1), &CalculateThroughput); 
 
 
   // Time delay for when simulator should stop
@@ -324,6 +341,7 @@ int main (int argc, char *argv[])
   Simulator::Stop (Seconds (OLSR_CONVERGE_TIME + REMAINING_SIMULATION_TIME)); 
   Simulator::Run ();
   Simulator::Destroy ();
+  std::cout << "total: " << sink->GetTotalRx () * 8 / 1e6 << "Mb on chain of " << numNodes << " endl" << std::endl;
   return 0;
 }
 
