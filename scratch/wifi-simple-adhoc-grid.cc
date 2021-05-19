@@ -117,7 +117,8 @@ static void CalculateThroughput ()
 // Give OLSR time to converge (e.g., populate routing tables). 
 double OLSR_CONVERGE_TIME = 30.0;
 // Time for which to run the simulation (after allowing OLSR convergence)
-double REMAINING_SIMULATION_TIME = 100.0;
+// **TAKES A WHILE TO RUN.** decrease this number when testing. 
+double REMAINING_SIMULATION_TIME = 300.0; 
 // Effective transmission range of the nodes. 
 // (Used to set propagation loss model - NOT SURE IF THIS IS RIGHT.) 
 double RANGE = 250.0;
@@ -341,7 +342,16 @@ int main (int argc, char *argv[])
   Simulator::Stop (Seconds (OLSR_CONVERGE_TIME + REMAINING_SIMULATION_TIME)); 
   Simulator::Run ();
   Simulator::Destroy ();
-  std::cout << "total: " << sink->GetTotalRx () * 8 / 1e6 << "Mb on chain of " << numNodes << " nodes." << std::endl;
+  std::cout << "total: " 
+	    << sink->GetTotalRx () * 8 / 1e6 
+	    << "Mb (application) received, with:\n Chain size: " 
+	    << numNodes 
+	    << " nodes,\n TCP segement size: "
+	    << packetSize
+	    << " bytes,\n Simulation time: "
+	    << REMAINING_SIMULATION_TIME 
+	    << " seconds." 
+	    << std::endl;
   return 0;
 }
 
