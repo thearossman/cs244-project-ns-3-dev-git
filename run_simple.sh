@@ -1,7 +1,7 @@
 #!/bin/bash
 [ ! -d outputs ] && mkdir outputs
 
-TIME=20
+TIME=300
 DISTANCE=200
 VERBOSE=0
 
@@ -19,4 +19,8 @@ for PACKETSZ in 64 500 1500; do
 	done
 done
 
-echo "Simulations are done! Results can be retrieved via the server"
+echo "Simulations are done!"
+
+python3 scratch/plot-simple.py
+
+echo "Plots are done!"
