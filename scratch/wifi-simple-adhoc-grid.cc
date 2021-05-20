@@ -65,6 +65,9 @@
 // tcpdump -r wifi-simple-adhoc-grid-0-0.pcap -nn -tt
 //
 
+#include <iostream>
+#include <fstream>
+
 #include "ns3/command-line.h"
 #include "ns3/config.h"
 #include "ns3/uinteger.h"
@@ -116,9 +119,7 @@ static void CalculateThroughput ()
 
 // Give OLSR time to converge (e.g., populate routing tables). 
 double OLSR_CONVERGE_TIME = 30.0;
-// Time for which to run the simulation (after allowing OLSR convergence)
-// **TAKES A WHILE TO RUN.** decrease this number when testing. 
-double REMAINING_SIMULATION_TIME = 300.0; 
+
 // Effective transmission range of the nodes. 
 // (Used to set propagation loss model - NOT SURE IF THIS IS RIGHT.) 
 double RANGE = 250.0;
@@ -130,12 +131,12 @@ int main (int argc, char *argv[])
   
   std::string phyMode ("DsssRate2Mbps");
   double distance = 200;  // m
+  double simTime = 300.0; //seconds
   uint32_t packetSize = 1000; // bytes
-  uint32_t numPackets = 1;
+  // uint32_t numPackets = 1; //unusued
   uint32_t numNodes = 8;
-  uint32_t sinkNode = 7;
-  uint32_t sourceNode = 0;
-  // double interval = 1.0; // seconds
+  // double interval = 1.0; // unused
+  bool printIntermediate = false;
   bool verbose = false;
   bool tracing = false;
   std::string transport_prot = "ns3::TcpNewReno";
@@ -145,14 +146,23 @@ int main (int argc, char *argv[])
   cmd.AddValue ("phyMode", "Wifi Phy mode", phyMode);
   cmd.AddValue ("distance", "distance (m)", distance);
   cmd.AddValue ("packetSize", "size of application packet sent", packetSize);
-  cmd.AddValue ("numPackets", "number of packets generated", numPackets);
+  // cmd.AddValue ("numPackets", "number of packets generated", numPackets);
+  cmd.AddValue ("simTime", "length of simulation (seconds)", simTime);
   // cmd.AddValue ("interval", "interval (seconds) between packets", interval);
+  cmd.AddValue ("printIntermediate", "print calculated throughput", printIntermediate);
   cmd.AddValue ("verbose", "turn on all WifiNetDevice log components", verbose);
   cmd.AddValue ("tracing", "turn on ascii and pcap tracing", tracing);
-  cmd.AddValue ("numNodes", "number of nodes", numNodes);
-  cmd.AddValue ("sinkNode", "Receiver node number", sinkNode);
-  cmd.AddValue ("sourceNode", "Sender node number", sourceNode);
+  cmd.AddValue ("numNodes", "number of nodes", numNodes);\
   cmd.Parse (argc, argv);
+
+  // Source is always chain start and sink is always chain end
+  uint32_t sinkNode = numNodes - 1;
+  uint32_t sourceNode = 0;
+
+  if (sinkNode <= sourceNode) {
+    std::cerr << "Chain must be of length at least 2" << std::endl;
+    return 1;
+  }
   
   // Convert to time object
   // **I THINK WE WILL GET RID OF THIS**
@@ -299,7 +309,7 @@ int main (int argc, char *argv[])
   sink = StaticCast<PacketSink> (receiverApp.Get (0));
   // Schedule
   receiverApp.Start (Seconds (OLSR_CONVERGE_TIME));
-  receiverApp.Stop (Seconds ((double)OLSR_CONVERGE_TIME + REMAINING_SIMULATION_TIME));
+  receiverApp.Stop (Seconds ((double)OLSR_CONVERGE_TIME + simTime));
  
   // Build sender application and install it on the sending node
   BulkSendHelper ftp ("ns3::TcpSocketFactory", Address ());
@@ -310,7 +320,7 @@ int main (int argc, char *argv[])
   // Installation 
   ApplicationContainer sourceApp = ftp.Install (c.Get(sourceNode));
   sourceApp.Start (Seconds (OLSR_CONVERGE_TIME));
-  sourceApp.Stop (Seconds ((double)OLSR_CONVERGE_TIME + REMAINING_SIMULATION_TIME));
+  sourceApp.Stop (Seconds ((double)OLSR_CONVERGE_TIME + simTime));
 
   AsciiTraceHelper asciiTraceHelper;
 
@@ -333,25 +343,36 @@ int main (int argc, char *argv[])
 
   // Start tracing throughput after we've given time for OLSR to converge 
   // (+ a buffer to allow connection to be established.) 
-  Simulator::Schedule (Seconds (OLSR_CONVERGE_TIME + 0.1), &CalculateThroughput); 
-
+  if (printIntermediate) {
+    Simulator::Schedule (Seconds (OLSR_CONVERGE_TIME + 0.1), &CalculateThroughput); 
+  }
 
   // Time delay for when simulator should stop
   // We should do this as [time for OLSR to converge] + 
   // [time we want to be testing the TCP flow] 
-  Simulator::Stop (Seconds (OLSR_CONVERGE_TIME + REMAINING_SIMULATION_TIME)); 
+  Simulator::Stop (Seconds (OLSR_CONVERGE_TIME + simTime)); 
   Simulator::Run ();
   Simulator::Destroy ();
+
+  double throughput = sink->GetTotalRx () * 8 / 1e6 / simTime;
+
   std::cout << "total: " 
-	    << sink->GetTotalRx () * 8 / 1e6 
+	    << throughput 
 	    << "Mb (application) received, with:\n Chain size: " 
 	    << numNodes 
 	    << " nodes,\n TCP segement size: "
 	    << packetSize
 	    << " bytes,\n Simulation time: "
-	    << REMAINING_SIMULATION_TIME 
+	    << simTime 
 	    << " seconds." 
 	    << std::endl;
+
+  std::string filename = "outputs/simple_results.txt";
+  std::ofstream ofs(filename, std::ios::app); //append to the end of this file
+  ofs << std::to_string(packetSize) << " " << std::to_string(numNodes)
+    << " " << std::to_string(simTime) << " " << std::to_string(throughput) << std::endl;
+  ofs.close();
+
   return 0;
 }
 
