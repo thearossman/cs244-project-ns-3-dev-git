@@ -1,69 +1,30 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-/*
- * Copyright (c) 2009 University of Washington
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation;
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
+
+/* This code is heavily based on the "wifi-simple-adhoc-grid" example 
+ * from ns-3, which is available here:
+ * https://www.nsnam.org/doxygen/wifi-simple-adhoc-grid_8cc_source.html
+ *  
+ * The original code is Copyright (c) 2009 University of Washington
+ * and released under the GNU General Public License v2. 
  */
 
-//
-// This program configures a grid (default 5x5) of nodes on an
-// 802.11b physical layer, with
-// 802.11b NICs in adhoc mode, and by default, sends one packet of 1000
-// (application) bytes to node 1.
+// This program configures a chain (default 8) of nodes on an
+// 802.11b physical layer, with 802.11b NICs in adhoc mode. 
+
+// The first node in the topology sends packets over a UDP connection, 
+// as fast as its protocol allows, to the last node in the topology. 
 //
 // Layout is like this, on a chain: 
 //
 // n0   n1   n2   n3   n4 ...
-//
-// the layout is affected by the parameters given to GridPositionAllocator;
-// by default, GridWidth is 5 and numNodes is 25..
 //
 // There are a number of command-line options available to control
 // the default behavior.  The list of available command-line options
 // can be listed with the following command:
 // ./waf --run "wifi-simple-adhoc-grid --help"
 //
-// Note that all ns-3 attributes (not just the ones exposed in the below
-// script) can be changed at command line; see the ns-3 documentation.
-//
-// For instance, for this configuration, the physical layer will
-// stop successfully receiving packets when distance increases beyond
-// the default of 500m.
-// To see this effect, try running:
-//
-// ./waf --run "wifi-simple-adhoc-grid --distance=500"
-// ./waf --run "wifi-simple-adhoc-grid --distance=1000"
-// ./waf --run "wifi-simple-adhoc-grid --distance=1500"
-//
-// The source node and sink node can be changed like this:
-//
-// ./waf --run "wifi-simple-adhoc-grid --sourceNode=20 --sinkNode=10"
-//
-// This script can also be helpful to put the Wifi layer into verbose
-// logging mode; this command will turn on all wifi logging:
-//
-// ./waf --run "wifi-simple-adhoc-grid --verbose=1"
-//
-// By default, trace file writing is off-- to enable it, try:
-// ./waf --run "wifi-simple-adhoc-grid --tracing=1"
-//
-// When you are done tracing, you will notice many pcap trace files
-// in your directory.  If you have tcpdump installed, you can try this:
-//
-// tcpdump -r wifi-simple-adhoc-grid-0-0.pcap -nn -tt
-//
+// The script measures total throughput by calculating the total
+// application-layer bytes received by the UDP receiver. 
 
 #include <iostream>
 #include <fstream>
@@ -85,7 +46,7 @@
 #include "ns3/internet-stack-helper.h"
 #include "ns3/applications-module.h"
 #include "ns3/core-module.h"
-#include "ns3/tcp-socket-factory.h"
+#include "ns3/udp-socket-factory.h"
 #include "ns3/tcp-header.h"
 #include "ns3/core-module.h"
 #include "ns3/packet.h"
@@ -96,13 +57,18 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("WifiSimpleAdhocGrid");
 
+
+/* Not used unless "printIntermediate" is selected. 
+   Useful if we want to re-calculate throughput 
+   (e.g., for logging, to observe fluctuations, etc.) over the course of 
+   the simulation. */
 uint64_t lastTotalRx = 0; 
 Ptr<PacketSink> sink;
 static void CalculateThroughput ()
 { 
   // Get the current time 
   Time now = Simulator::Now ();
-  // Total Mbits received by the TCP receiver so far
+  // Total Mbits received by the UDP receiver so far
   // Note: GetTotalRx = measured in bytes. 
   // I think bytes received by the application (e.g., not counting headers). 
   double totalRx = sink->GetTotalRx () * 8 / 1e6; 
@@ -121,8 +87,12 @@ static void CalculateThroughput ()
 double OLSR_CONVERGE_TIME = 30.0;
 
 // Effective transmission range of the nodes. 
-// (Used to set propagation loss model - NOT SURE IF THIS IS RIGHT.) 
+// (Used to set range-based propagation loss model.) 
 double RANGE = 250.0;
+
+// Used to set payload size for UDP packets.
+int UDP_HDR_BYTES = 8;
+int IP_HDR_MIN_BYTES = 20;
 
 int main (int argc, char *argv[])
 {
@@ -131,15 +101,12 @@ int main (int argc, char *argv[])
   
   std::string phyMode ("DsssRate2Mbps");
   double distance = 200;  // m
-  double simTime = 300.0; //seconds
-  uint32_t packetSize = 1000; // bytes
-  // uint32_t numPackets = 1; //unusued
+  double simTime = 300.0; // seconds
+  uint32_t packetSize = 1500; // bytes (including IP and UDP hdrs)
   uint32_t numNodes = 8;
-  // double interval = 1.0; // unused
   bool printIntermediate = false;
   bool verbose = false;
   bool tracing = false;
-  std::string transport_prot = "ns3::TcpNewReno";
   std::string dir = "outputs"; 
  
   CommandLine cmd (__FILE__);
@@ -164,10 +131,6 @@ int main (int argc, char *argv[])
     return 1;
   }
   
-  // Convert to time object
-  // **I THINK WE WILL GET RID OF THIS**
-  // Time interPacketInterval = Seconds (interval);
-
   // Fix non-unicast data rate to be the same as that of unicast
   Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode",
                       StringValue (phyMode));
@@ -194,9 +157,9 @@ int main (int argc, char *argv[])
   YansWifiPhyHelper wifiPhy;
 
   // NOTE: ideally, we want to model what they modeled in the paper - 
-  // the Lucent WaveLAN Card (2001). 
-  // TODO, then, we should tune the physical layer parameters to match 
-  // the hardware we want to simulate.  
+  // the Lucent WaveLAN Card (2001). Since little documentation is available 
+  // for this card, our parameters may be slightly different than those used
+  // in the original paper.  
 
   // Reception gain (dB). 
   // NOTE: Not sure what to set this as. 
@@ -204,25 +167,17 @@ int main (int argc, char *argv[])
   wifiPhy.Set ("RxGain", DoubleValue (-10) );
   
   // NS--3 supports RadioTap and Prism tracing extensions for 802.11b
-  // TODO, set this correctly. We may not need this at all, since I 
-  // believe that it's just for tracing.
-  // For now, I set it to DLT_IEEE802_11_RADIO 
+  // This is only used if tracing is enabled. 
   wifiPhy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11);
 
   /** Channel helper **/
   // Channel means everything involved in getting packets between devices. 
   // The main things we model here are propagation delay and propagation loss. 
   YansWifiChannelHelper wifiChannel;
-  // TODO: Again, we may need to tune these parameters.
   wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
  
-  // *PARAMETER CHANGED* 
   // This sets the propagation loss model for the WiFi channel.
-  // WE MAY WANT TO CHANGE THIS, but for now, I just set it to drop packets past 
-  // a certain range.
-  // Note: see other possible models here: 
-  //            https://www.nsnam.org/docs/models/html/propagation.html
-  //		LogDistancePropagationLossModel also could be promising? 
+  // Drop packets outside of the effective transmission range set for each node. 
   wifiChannel.AddPropagationLoss ("ns3::RangePropagationLossModel", "MaxRange", DoubleValue(RANGE));
   // Bind the WiFi channel to the physical layer 
   wifiPhy.SetChannel (wifiChannel.Create ());
@@ -291,19 +246,17 @@ int main (int argc, char *argv[])
   // Note: all of these devices are on one network. 
 
   /*** INSTALL LAYER 4 APPLICATION ***/
-  // TCP variant  
-  TypeId tid = TypeId::LookupByName ( transport_prot ); 
   
-  // Build receiver application and install it on the sink node 
+  // Build UDP receiver application and install it on the sink node 
   uint16_t receiverPort = 5001; 
   AddressValue receiverAddress (InetSocketAddress (i.GetAddress (sinkNode), 
                                                    receiverPort));
-  PacketSinkHelper receiverHelper ("ns3::TcpSocketFactory",
+  PacketSinkHelper receiverHelper ("ns3::UdpSocketFactory", 
                                    receiverAddress.Get());
   receiverHelper.SetAttribute ("Protocol",
-                               TypeIdValue (TcpSocketFactory::GetTypeId ()));
+                               TypeIdValue (UdpSocketFactory::GetTypeId ()));
  
-  // Installation  
+  // Install
   ApplicationContainer receiverApp = receiverHelper.Install (c.Get(sinkNode));
   // Save so that we can call getTotalRx later
   sink = StaticCast<PacketSink> (receiverApp.Get (0));
@@ -312,13 +265,19 @@ int main (int argc, char *argv[])
   receiverApp.Stop (Seconds ((double)OLSR_CONVERGE_TIME + simTime));
  
   // Build sender application and install it on the sending node
-  BulkSendHelper ftp ("ns3::TcpSocketFactory", Address ());
-  ftp.SetAttribute ("Remote", receiverAddress);
-  uint32_t tcpSegmentSize = packetSize; // TODO: CHANGE TO ACCOUNT FOR OVERHEAD
-  ftp.SetAttribute ("SendSize", UintegerValue (tcpSegmentSize));
+  OnOffHelper onoffHelper ("ns3::UdpSocketFactory", InetSocketAddress (i.GetAddress (sinkNode),
+                                                   receiverPort));
+  onoffHelper.SetAttribute ("DataRate", DataRateValue (DataRate ("2Mbps")));
+  uint32_t udpPacketSize = packetSize - UDP_HDR_BYTES - IP_HDR_MIN_BYTES; 
+  onoffHelper.SetAttribute ("PacketSize", UintegerValue (udpPacketSize));
+  // The OnOff application is designed to send packets for an interval ("on"), then stop sending them 
+  // for an interval. We "flood" UDP packets as fast as the MAC protocol allows by setting the OffTime 
+  // to be 0 and the OnTime to be the duration of the simulation. 
+  onoffHelper.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0.0]"));
+  onoffHelper.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=" + std::to_string(simTime) + "]"));
 
-  // Installation 
-  ApplicationContainer sourceApp = ftp.Install (c.Get(sourceNode));
+  // Install and schedule 
+  ApplicationContainer sourceApp = onoffHelper.Install (c.Get(sourceNode));
   sourceApp.Start (Seconds (OLSR_CONVERGE_TIME));
   sourceApp.Stop (Seconds ((double)OLSR_CONVERGE_TIME + simTime));
 
@@ -335,11 +294,12 @@ int main (int argc, char *argv[])
       Ptr<OutputStreamWrapper> neighborStream = Create<OutputStreamWrapper> ("wifi-simple-adhoc-grid.neighbors", std::ios::out);
       olsr.PrintNeighborCacheAllEvery (Seconds (2), neighborStream);
 
-      // To do-- enable an IP-level trace that shows forwarding events only
+      // To do if desired -- enable an IP-level trace that shows forwarding events only
     }
 
   // Output what we are doing
-  NS_LOG_UNCOND ("Testing from node " << sourceNode << " to " << sinkNode << " with grid distance " << distance);
+  NS_LOG_UNCOND ("Testing from node " << sourceNode << " to " << sinkNode << " with grid distance " << distance << 
+			" and packet size " << packetSize);
 
   // Start tracing throughput after we've given time for OLSR to converge 
   // (+ a buffer to allow connection to be established.) 
@@ -349,7 +309,7 @@ int main (int argc, char *argv[])
 
   // Time delay for when simulator should stop
   // We should do this as [time for OLSR to converge] + 
-  // [time we want to be testing the TCP flow] 
+  // [time we want to be testing the UDP flow] 
   Simulator::Stop (Seconds (OLSR_CONVERGE_TIME + simTime)); 
   Simulator::Run ();
   Simulator::Destroy ();
@@ -358,15 +318,17 @@ int main (int argc, char *argv[])
 
   std::cout << "total: " 
 	    << throughput 
-	    << "Mb (application) received, with:\n Chain size: " 
+	    << "Mb/s (application) received, with:\n Chain size: " 
 	    << numNodes 
-	    << " nodes,\n TCP segement size: "
+	    << " nodes,\n Packet size: "
 	    << packetSize
-	    << " bytes,\n Simulation time: "
+	    << " bytes (includes IP and UDP headers),\n Simulation time: "
 	    << simTime 
 	    << " seconds." 
 	    << std::endl;
+   
 
+  
   std::string filename = "outputs/simple_results.txt";
   std::ofstream ofs(filename, std::ios::app); //append to the end of this file
   ofs << std::to_string(packetSize) << " " << std::to_string(numNodes)
