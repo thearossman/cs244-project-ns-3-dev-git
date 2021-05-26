@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 sim_time = 0
 per_packet_sz = {}
 
-FILENAME = 'outputs/simple_results_udp_80211b_fig3.txt'
+FILENAME = 'outputs/simple_results.txt'
 
 with open(FILENAME,'r') as f:
     for line in f:
