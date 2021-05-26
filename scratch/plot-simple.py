@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 sim_time = 0
 per_packet_sz = {}
 
-with open('outputs/simple_results.txt','r') as f:
+FILENAME = 'outputs/simple_results_udp_80211b_fig3.txt'
+
+with open(FILENAME,'r') as f:
     for line in f:
         data = line.split()
         packet_sz = int(data[0])
@@ -27,8 +29,8 @@ c = 1 #color value
 for packet_sz in per_packet_sz:
     per_chain_len = per_packet_sz[packet_sz]
 
-    chain_lens = per_chain_len.keys()
-    throughputs = per_chain_len.values()
+    chain_lens = list(per_chain_len.keys())
+    throughputs = list(per_chain_len.values())
     plot_name = "" + str(packet_sz) + " byte packets"
     plt.plot(chain_lens, throughputs, c="C" + str(c), label=plot_name, marker='+')
 
