@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 sim_time = 0
 per_packet_sz = {}
 
-FILENAME = 'outputs/simple_results.txt'
+FILENAME = 'outputs/figure_3_results.txt'
 
 with open(FILENAME,'r') as f:
     for line in f:
@@ -22,7 +22,7 @@ with open(FILENAME,'r') as f:
         per_chain_len[chain_len] = throughput
         per_packet_sz[packet_sz] = per_chain_len
 
-filename = 'outputs/simple_plots.png'
+filename = 'outputs/figure_3_plots.png'
 
 plt.figure()
 c = 1 #color value

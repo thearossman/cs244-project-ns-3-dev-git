@@ -2,4 +2,6 @@
 /*
 !.gitignore
 !subdir/
-!plot-simple.py
+!plot-figure-3.py
+!figure-3.cc
+!figure-4.cc

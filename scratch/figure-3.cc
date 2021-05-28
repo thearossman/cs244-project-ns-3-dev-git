@@ -329,7 +329,7 @@ int main (int argc, char *argv[])
    
 
   
-  std::string filename = "outputs/simple_results.txt";
+  std::string filename = "outputs/figure_3_results.txt";
   std::ofstream ofs(filename, std::ios::app); //append to the end of this file
   ofs << std::to_string(packetSize) << " " << std::to_string(numNodes)
     << " " << std::to_string(simTime) << " " << std::to_string(throughput) << std::endl;
