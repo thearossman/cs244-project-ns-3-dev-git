@@ -4,5 +4,7 @@
 !subdir/
 !plot-figure-3.py
 !plot-figure-4.py
+!plot-figure-8.py
 !figure-3.cc
 !figure-4.cc
+!figure-8.cc
