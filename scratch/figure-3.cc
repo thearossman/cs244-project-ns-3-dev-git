@@ -100,6 +100,7 @@ int main (int argc, char *argv[])
   /*** DECLARE PARAMETERS ***/
   
   std::string phyMode ("DsssRate2Mbps");
+  std::string wifiStandard ("WIFI_STANDARD_80211b");
   double distance = 200;  // m
   double simTime = 300.0; // seconds
   uint32_t packetSize = 1500; // bytes (including IP and UDP hdrs)
@@ -119,8 +120,13 @@ int main (int argc, char *argv[])
   cmd.AddValue ("printIntermediate", "print calculated throughput", printIntermediate);
   cmd.AddValue ("verbose", "turn on all WifiNetDevice log components", verbose);
   cmd.AddValue ("tracing", "turn on ascii and pcap tracing", tracing);
-  cmd.AddValue ("numNodes", "number of nodes", numNodes);\
+  cmd.AddValue ("numNodes", "number of nodes", numNodes);
+  cmd.AddValue ("WiFiStandard", "WiFi Standard", wifiStandard);
   cmd.Parse (argc, argv);
+
+  if (wifiStandard == "WIFI_STANDARD_80211a") { 
+    phyMode = "OfdmRate2_25MbpsBW5MHz";
+  }
 
   // Source is always chain start and sink is always chain end
   uint32_t sinkNode = numNodes - 1;
@@ -189,7 +195,11 @@ int main (int argc, char *argv[])
   
   /** Network device (this was declared earlier. WiFi Helper object.) **/
   // Standard used (802.11b)
-  wifi.SetStandard (WIFI_STANDARD_80211b);
+  if (wifiStandard == "WIFI_STANDARD_80211a") { 
+    wifi.SetStandard (WIFI_STANDARD_80211a);
+  } else { 
+    wifi.SetStandard (WIFI_STANDARD_80211b);
+  }
   // Rate control algorithm, if any. 
   // Constant Rate = use constant rates for data and RTS (request to send) transmissions
   // (Note that this is also a rate control framework supported by the physical layer.) 
