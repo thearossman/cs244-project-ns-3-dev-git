@@ -1,0 +1,203 @@
+The below are the pcap summaries from running figure 3 with 
+tracing enabled on a 7-node topology. 
+
+As expected, we observe that node 1, which originates traffic, 
+injects packets at a higher bitrate than later nodes can handle. 
+
+----------------------------------------------------------------  
+
+File name:           wifi-simple-adhoc-grid-0-0.pcap
+File type:           Wireshark/tcpdump/... - pcap
+File encapsulation:  IEEE 802.11 Wireless LAN
+File timestamp precision:  microseconds (6)
+Packet size limit:   file hdr: 65535 bytes
+Number of packets:   36 k
+File size:           39 MB
+Data size:           38 MB
+Capture duration:    328.583998 seconds
+First packet time:   1969-12-31 16:00:00.017673
+Last packet time:    1969-12-31 16:05:28.601671
+Data byte rate:      117 kBps
+Data bit rate:       937 kbps
+Average packet size: 1058.29 bytes
+Average packet rate: 110 packets/s
+SHA256:              da65585c500fbcce38943e8701825bc8482dcf639fac52f1adb974012117c6f8
+RIPEMD160:           13aac9b2957909ae7f5da2e69d2492bd7b1edcad
+SHA1:                1e2087ad69139779f0e8e852ac86841381d7c490
+Strict time order:   True
+Number of interfaces in file: 1
+Interface #0 info:
+                     Encapsulation = IEEE 802.11 Wireless LAN (20 - ieee-802-11)
+                     Capture length = 65535
+                     Time precision = microseconds (6)
+                     Time ticks per second = 1000000
+                     Number of stat entries = 0
+                     Number of packets = 36370
+
+File name:           wifi-simple-adhoc-grid-1-0.pcap
+File type:           Wireshark/tcpdump/... - pcap
+File encapsulation:  IEEE 802.11 Wireless LAN
+File timestamp precision:  microseconds (6)
+Packet size limit:   file hdr: 65535 bytes
+Number of packets:   37 k
+File size:           31 MB
+Data size:           30 MB
+Capture duration:    328.584279 seconds
+First packet time:   1969-12-31 16:00:00.017144
+Last packet time:    1969-12-31 16:05:28.601423
+Data byte rate:      94 kBps
+Data bit rate:       754 kbps
+Average packet size: 817.78 bytes
+Average packet rate: 115 packets/s
+SHA256:              88b73503858145d7fbed46f2c965ce1c9770672aa3495f24b3fae431a5c05dd8
+RIPEMD160:           22d87a2face51c13e05d3e44d1a705fe316abee0
+SHA1:                23a70b656b82f912c09620e2148ba33b21e4faa6
+Strict time order:   True
+Number of interfaces in file: 1
+Interface #0 info:
+                     Encapsulation = IEEE 802.11 Wireless LAN (20 - ieee-802-11)
+                     Capture length = 65535
+                     Time precision = microseconds (6)
+                     Time ticks per second = 1000000
+                     Number of stat entries = 0
+                     Number of packets = 37894
+
+File name:           wifi-simple-adhoc-grid-2-0.pcap
+File type:           Wireshark/tcpdump/... - pcap
+File encapsulation:  IEEE 802.11 Wireless LAN
+File timestamp precision:  microseconds (6)
+Packet size limit:   file hdr: 65535 bytes
+Number of packets:   40 k
+File size:           26 MB
+Data size:           25 MB
+Capture duration:    328.583998 seconds
+First packet time:   1969-12-31 16:00:00.017673
+Last packet time:    1969-12-31 16:05:28.601671
+Data byte rate:      78 kBps
+Data bit rate:       630 kbps
+Average packet size: 642.60 bytes
+Average packet rate: 122 packets/s
+SHA256:              39458d5aa31b85e07e4a37d5882916f789fd1ec3fade2cb8d787102218c147c5
+RIPEMD160:           c63cc3ce2a95bcb239573c82b38d54996c95451e
+SHA1:                615af2f3bfcf0a1fb17d49fb85d5d27b627bacfa
+Strict time order:   True
+Number of interfaces in file: 1
+Interface #0 info:
+                     Encapsulation = IEEE 802.11 Wireless LAN (20 - ieee-802-11)
+                     Capture length = 65535
+                     Time precision = microseconds (6)
+                     Time ticks per second = 1000000
+                     Number of stat entries = 0
+                     Number of packets = 40285
+
+File name:           wifi-simple-adhoc-grid-3-0.pcap
+File type:           Wireshark/tcpdump/... - pcap
+File encapsulation:  IEEE 802.11 Wireless LAN
+File timestamp precision:  microseconds (6)
+Packet size limit:   file hdr: 65535 bytes
+Number of packets:   35 k
+File size:           27 MB
+Data size:           26 MB
+Capture duration:    328.336734 seconds
+First packet time:   1969-12-31 16:00:00.138811
+Last packet time:    1969-12-31 16:05:28.475545
+Data byte rate:      81 kBps
+Data bit rate:       649 kbps
+Average packet size: 749.41 bytes
+Average packet rate: 108 packets/s
+SHA256:              0f78e48db1df69033662b718e12ce401fc74d9e192e4314948f7aad58d944f3d
+RIPEMD160:           1695fd602248affe6d9c44b8fa81788d59bca6ff
+SHA1:                3c6ce359e8d2f8e0a1d0573560ce475846b2f06b
+Strict time order:   True
+Number of interfaces in file: 1
+Interface #0 info:
+                     Encapsulation = IEEE 802.11 Wireless LAN (20 - ieee-802-11)
+                     Capture length = 65535
+                     Time precision = microseconds (6)
+                     Time ticks per second = 1000000
+                     Number of stat entries = 0
+                     Number of packets = 35596
+
+File name:           wifi-simple-adhoc-grid-4-0.pcap
+File type:           Wireshark/tcpdump/... - pcap
+File encapsulation:  IEEE 802.11 Wireless LAN
+File timestamp precision:  microseconds (6)
+Packet size limit:   file hdr: 65535 bytes
+Number of packets:   34 k
+File size:           27 MB
+Data size:           26 MB
+Capture duration:    328.240400 seconds
+First packet time:   1969-12-31 16:00:00.138283
+Last packet time:    1969-12-31 16:05:28.378683
+Data byte rate:      80 kBps
+Data bit rate:       647 kbps
+Average packet size: 759.52 bytes
+Average packet rate: 106 packets/s
+SHA256:              35ad906075061ad31c98e23657341bb0568165475a8599faf694a58a98a0a356
+RIPEMD160:           2f3b6344105258a50cfc89db9783310e5949c39e
+SHA1:                5ff30988d9ab26faa93f154c4228db50fc3fe87f
+Strict time order:   True
+Number of interfaces in file: 1
+Interface #0 info:
+                     Encapsulation = IEEE 802.11 Wireless LAN (20 - ieee-802-11)
+                     Capture length = 65535
+                     Time precision = microseconds (6)
+                     Time ticks per second = 1000000
+                     Number of stat entries = 0
+                     Number of packets = 34974
+
+File name:           wifi-simple-adhoc-grid-5-0.pcap
+File type:           Wireshark/tcpdump/... - pcap
+File encapsulation:  IEEE 802.11 Wireless LAN
+File timestamp precision:  microseconds (6)
+Packet size limit:   file hdr: 65535 bytes
+Number of packets:   29 k
+File size:           18 MB
+Data size:           17 MB
+Capture duration:    328.239280 seconds
+First packet time:   1969-12-31 16:00:00.138811
+Last packet time:    1969-12-31 16:05:28.378091
+Data byte rate:      54 kBps
+Data bit rate:       434 kbps
+Average packet size: 610.19 bytes
+Average packet rate: 88 packets/s
+SHA256:              0863cfeda17acb6b5b58d026b9a637c27cb3e41c223b25c502e23f65e8e192ba
+RIPEMD160:           aa78db7eb29ac07358526a8e49f27086e7528973
+SHA1:                395dcf506b038f718a50b234c19f07c31e7311c1
+Strict time order:   True
+Number of interfaces in file: 1
+Interface #0 info:
+                     Encapsulation = IEEE 802.11 Wireless LAN (20 - ieee-802-11)
+                     Capture length = 65535
+                     Time precision = microseconds (6)
+                     Time ticks per second = 1000000
+                     Number of stat entries = 0
+                     Number of packets = 29194
+
+File name:           wifi-simple-adhoc-grid-6-0.pcap
+File type:           Wireshark/tcpdump/... - pcap
+File encapsulation:  IEEE 802.11 Wireless LAN
+File timestamp precision:  microseconds (6)
+Packet size limit:   file hdr: 65535 bytes
+Number of packets:   17 k
+File size:           9,235 kB
+Data size:           8,955 kB
+Capture duration:    328.158447 seconds
+First packet time:   1969-12-31 16:00:00.220236
+Last packet time:    1969-12-31 16:05:28.378683
+Data byte rate:      27 kBps
+Data bit rate:       218 kbps
+Average packet size: 510.87 bytes
+Average packet rate: 53 packets/s
+SHA256:              cea1d67599cec1900caae6f518e17309022991a64d97c85f7172089c61700b01
+RIPEMD160:           5868a263e8a4ea26cfbcb7078013e90f21d958e4
+SHA1:                59e23db1484bf74a6e9a42c2fc7427c80ffdb896
+Strict time order:   True
+Number of interfaces in file: 1
+Interface #0 info:
+                     Encapsulation = IEEE 802.11 Wireless LAN (20 - ieee-802-11)
+                     Capture length = 65535
+                     Time precision = microseconds (6)
+                     Time ticks per second = 1000000
+                     Number of stat entries = 0
+                     Number of packets = 17529

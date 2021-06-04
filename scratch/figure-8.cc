@@ -14,10 +14,13 @@
 // The first node in the topology sends packets over a UDP connection, 
 // as fast as its protocol allows, to the last node in the topology. 
 //
-// Layout is like this, on a chain: 
+// Layout is like this, on a square lattice: 
 //
-// n0   n1   n2   n3   n4 ...
-//
+// n00   n01   n02   n03   n04 ...
+// n10   n11   n12   n13   n14 ...
+// 
+// Traffic patterns are horizontal and parallel, from n*0->n*(n-1).
+
 // There are a number of command-line options available to control
 // the default behavior.  The list of available command-line options
 // can be listed with the following command:
@@ -113,10 +116,7 @@ int main (int argc, char *argv[])
   cmd.AddValue ("phyMode", "Wifi Phy mode", phyMode);
   cmd.AddValue ("distance", "distance (m)", distance);
   cmd.AddValue ("packetSize", "size of application packet sent", packetSize);
-  // cmd.AddValue ("numPackets", "number of packets generated", numPackets);
   cmd.AddValue ("simTime", "length of simulation (seconds)", simTime);
-  // cmd.AddValue ("interval", "interval (seconds) between packets", interval);
-  // cmd.AddValue ("printIntermediate", "print calculated throughput", printIntermediate);
   cmd.AddValue ("verbose", "turn on all WifiNetDevice log components", verbose);
   cmd.AddValue ("tracing", "turn on ascii and pcap tracing", tracing);
   cmd.AddValue ("chainLen", "number of nodes", chainLen);\
@@ -169,11 +169,6 @@ int main (int argc, char *argv[])
   // for this card, our parameters may be slightly different than those used
   // in the original paper.  
 
-  // Reception gain (dB). 
-  // NOTE: Not sure what to set this as. 
-  // set it to zero; otherwise, gain will be added
-  wifiPhy.Set ("RxGain", DoubleValue (-10) );
-  
   // NS--3 supports RadioTap and Prism tracing extensions for 802.11b
   // This is only used if tracing is enabled. 
   wifiPhy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11);
