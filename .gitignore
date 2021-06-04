@@ -38,4 +38,6 @@ build/
 /.cproject
 /.project
 
+!outputs/*.png
+
 version.cache
