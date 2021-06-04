@@ -2,8 +2,9 @@ This folder contains an attempt at reproducing figure 4 of the
 original paper. 
 
 We had originally planned to reproduce this in our reproduction,
-but did not end up with sufficient time to figure out what we're doing 
-incorrectly. 
+but did not end up with sufficient time to debug and figure out what we're 
+doing incorrectly. (The script that's here produces results that don't make
+sense.) 
 
 We're leaving one of our attempts here for transparency and in case anyone 
 knows what we were doing wrong!
