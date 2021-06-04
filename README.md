@@ -10,7 +10,7 @@ This GitHub repository contains our scripts for reproducing two figures from the
 
 The original paper was written in *ns* with the CMU Wireless Extension, and we did not have access to the original scripts. We based the skeleton of our scripts on the nsnam.org example, "wifi-simple-adhoc-grid.cc", available [here](https://www.nsnam.org/doxygen/wifi-simple-adhoc-grid_8cc.html). 
 
-Below is some justification of our parameters: 
+**Below is some justification of our parameters:**
 
 *Physical layer: YansWifiPhy* 
 
