@@ -16,7 +16,7 @@ The original paper was written in *ns* with the CMU Wireless Extension, and we d
 
 **PCAP Data Link Type**: For tracing. We use DLT_IEEE802_11 to isolate MAC layer information, though DLT_IEEE802_11_RADIO can also be helpful.
 
-As far as we can tell from toggling them, the remaining attributes are either overridden by the default value set by the standard (for example, SIFS is overridden), do not impact our results (e.g., propagation loss model is purely range-based and does not depend on TxGain and RxGain, so toggling these does not impact throughput), are incompatible with 802.11b, or throw errors when we try to configure them. 
+As far as we can tell from toggling each of them, the remaining attributes are either overridden by the default value set by the standard (for example, SIFS is overridden), do not impact our results (e.g., propagation loss model is purely range-based and does not depend on TxGain and RxGain, so toggling these does not impact throughput), are incompatible with 802.11b, or throw errors when we try to configure them. 
 
 *Channel: YansWifiChannel*
 
