@@ -108,7 +108,7 @@ int main (int argc, char *argv[])
   bool verbose = false;
   bool tracing = false;
   std::string dir = "outputs"; 
-  std::string dataRate = "2Mbps";
+  double dataRate = 0.45;
  
   CommandLine cmd (__FILE__);
   cmd.AddValue ("phyMode", "Wifi Phy mode", phyMode);
@@ -269,15 +269,19 @@ int main (int argc, char *argv[])
   // Build sender application and install it on the sending node
   OnOffHelper onoffHelper ("ns3::UdpSocketFactory", InetSocketAddress (i.GetAddress (sinkNode),
                                                    receiverPort));
-  // onoffHelper.SetAttribute ("DataRate", DataRateValue (DataRate (dataRate)));
+  onoffHelper.SetAttribute ("DataRate", DataRateValue (DataRate ("2Mbps")));
   uint32_t udpPacketSize = packetSize - UDP_HDR_BYTES - IP_HDR_MIN_BYTES; 
-  onoffHelper.SetConstantRate(dataRate, udpPacketSize);
-  // onoffHelper.SetAttribute ("PacketSize", UintegerValue (udpPacketSize));
+  // onoffHelper.SetConstantRate(dataRate, udpPacketSize);
+  onoffHelper.SetAttribute ("PacketSize", UintegerValue (udpPacketSize));
   // The OnOff application is designed to send packets for an interval ("on"), then stop sending them 
   // for an interval. We "flood" UDP packets as fast as the MAC protocol allows by setting the OffTime 
   // to be 0 and the OnTime to be the duration of the simulation. 
-  // onoffHelper.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0.0]"));
-  // onoffHelper.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=" + std::to_string(simTime) + "]"));
+  double onTime = packetSize / (2 * pow(10,6) / 8); //time to send one packet at 2MBps
+  double offeredLoad = (dataRate * pow(10,6) / 8 ) / packetSize; //how many packets to send in one second
+  double offTime = 1/offeredLoad - onTime; //stay off as long as it takes to send offerLoad many packets
+  std::cout << "ontime " << std::to_string(onTime) << " offeredLoad " << std::to_string(offeredLoad) << " offTime " << std::to_string(offTime) << std::endl;
+  onoffHelper.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=" + std::to_string(offTime) + "]"));
+  onoffHelper.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=" + std::to_string(onTime) + "]"));
 
   // Install and schedule 
   ApplicationContainer sourceApp = onoffHelper.Install (c.Get(sourceNode));

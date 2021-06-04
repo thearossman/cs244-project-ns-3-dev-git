@@ -10,8 +10,8 @@ if [ -f $filename ]; then
   rm "$filename"
 fi
 touch "$filename"
-
-for DATARATE in "320Kbps" "340Kbps" "350Kbps" "400Kbps" "420Kbps" "430Kbps" "450Kbps" "500Kbps" "550Kbps"; do
+#0.32 0.34 0.35 0.37 0.39 0.4 0.41 0.42 0.43 0.45 0.5 0.55
+for DATARATE in 0.3 0.4 0.5 0.6 0.7 0.8 0.9; do
 	    # Run the NS-3 Simulation
 	    ./waf --run "scratch/figure-4.cc --simTime=$TIME --dataRate=$DATARATE --printIntermediate=$VERBOSE"
 done

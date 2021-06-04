@@ -12,8 +12,8 @@ if [ -f $filename ]; then
 fi
 touch "$filename"
 
-for PACKETSZ in 64 500 1500; do
-	for CHAINLEN in 4 5 6 7 8 9 10; do
+for PACKETSZ in 500 1500 64; do
+	for CHAINLEN in 3 4 5 6 7; do
 	    # Run the NS-3 Simulation
 	    ./waf --run "scratch/figure-8.cc --simTime=$TIME --distance=$DISTANCE --packetSize=$PACKETSZ --chainLen=$CHAINLEN"
 	done

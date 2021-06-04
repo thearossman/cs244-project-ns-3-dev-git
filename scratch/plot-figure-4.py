@@ -11,9 +11,7 @@ FILENAME = 'outputs/figure_4_results.txt'
 with open(FILENAME,'r') as f:
     for line in f:
         data = line.split()
-        data_rate_str = data[0]
-        data_rate_str = re.search("[0-9]*", data_rate_str).group()
-        data_rate = int(data_rate_str)/1000.0 # converet Kbps to Mbps
+        data_rate = float(data[0])
         sim_time = float(data[1])
         throughput = float(data[2])
 
