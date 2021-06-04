@@ -100,10 +100,11 @@ int main (int argc, char *argv[])
   /*** DECLARE PARAMETERS ***/
   
   std::string phyMode ("DsssRate2Mbps");
-  std::string wifiStandard ("WIFI_STANDARD_80211b");
+  std::string wifiStandard ("WIFI_STANDARD_80211b"); // Can also test over 802.11a. 
   double distance = 200;  // m
   double simTime = 300.0; // seconds
-  uint32_t packetSize = 1500; // bytes (including IP and UDP hdrs)
+  // Packet size includes UDP and IP headers, but not MAC. 
+  uint32_t packetSize = 1500; // bytes
   uint32_t numNodes = 8;
   bool printIntermediate = false;
   bool verbose = false;
@@ -140,7 +141,7 @@ int main (int argc, char *argv[])
   // Fix non-unicast data rate to be the same as that of unicast
   Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode",
                       StringValue (phyMode));
-   
+ 
   /*** CREATE NODES ***/
   NodeContainer c;
   c.Create (numNodes);
@@ -167,11 +168,6 @@ int main (int argc, char *argv[])
   // for this card, our parameters may be slightly different than those used
   // in the original paper.  
 
-  // Reception gain (dB). 
-  // NOTE: Not sure what to set this as. 
-  // set it to zero; otherwise, gain will be added
-  wifiPhy.Set ("RxGain", DoubleValue (-10) );
-  
   // NS--3 supports RadioTap and Prism tracing extensions for 802.11b
   // This is only used if tracing is enabled. 
   wifiPhy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11);
@@ -205,7 +201,7 @@ int main (int argc, char *argv[])
   // (Note that this is also a rate control framework supported by the physical layer.) 
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
                                 "DataMode",StringValue (phyMode), // 2Mbps
-                                "ControlMode",StringValue (phyMode)); // 2Mbps
+                                "ControlMode",StringValue (phyMode)); 
   
   /** Create a collection of network devices, each running the settings we 
       configured above. These are built from the nodes we initialized at the beginning. **/
