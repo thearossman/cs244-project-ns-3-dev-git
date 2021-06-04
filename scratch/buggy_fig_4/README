@@ -1,0 +1,10 @@
+This folder contains an attempt at reproducing figure 4 of the 
+original paper. We're leaving these here in case someone can figure 
+out what we were doing wrong and why we were not getting the same 
+results!
+
+While we initially planned to reproduce this figure as well -- which 
+we thought would be relatively straightforward -- due to running into 
+challenges and time constraints, we limited our scope to figures 3 and 
+8 and to the core pattern of the paper.  
+
